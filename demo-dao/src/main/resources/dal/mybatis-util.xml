@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="util">
+
+    <!-- 分页 -->
+    <sql id="_page">
+        <if test="startRecord!=null and pageSize!=null and pageSize>0">
+            limit #{startRecord},#{pageSize}
+        </if>
+    </sql>
+
+    <!-- 排序 -->
+    <sql id="_order">
+        <choose>
+            <when test="sort != null and sort != '' and  order !=null and order!='' ">
+                order by ${sort} ${order}
+            </when>
+            <when test="sort != null and sort != ''">
+                order by ${sort}
+            </when>
+            <otherwise>
+                order by id desc
+            </otherwise>
+        </choose>
+    </sql>
+
+    <sql id="_modify">
+            modify_time =  <include refid="util._now"/>,
+            modifier_id = #{modifierId},
+
+
+    </sql>
+
+    <sql id="_create">
+
+            create_time =    <include refid="util._now"/>,
+
+            creator_id = #{creatorId},
+
+    </sql>
+
+    <sql id="_now">
+         ROUND(UNIX_TIMESTAMP(now(4))*1000)
+    </sql>
+
+    <sql id="_versionUpdate">
+        <if test=" version != null">
+            version = #{version} +1,
+        </if>
+    </sql>
+
+    <sql id="_versionWhere">
+        <if test="version != null">
+            and version = #{version}
+        </if>
+    </sql>
+
+
+    <!-- 排序+分页 -->
+    <sql id="_orderPage">
+        <include refid="util._order"/>
+        <include refid="util._page"/>
+    </sql>
+</mapper>

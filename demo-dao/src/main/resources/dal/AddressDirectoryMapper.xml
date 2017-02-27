@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.kevin.demo.dao.AddressDirectoryDao">
+    <resultMap id="BaseResultMap" type="com.kevin.demo.dao.po.AddressDirectoryPO">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="address_id" property="addressId" jdbcType="VARCHAR"/>
+        <result column="address_code" property="addressCode" jdbcType="VARCHAR"/>
+        <result column="address_type" property="addressType" jdbcType="VARCHAR"/>
+        <result column="address_name" property="addressName" jdbcType="VARCHAR"/>
+        <result column="parent_id" property="parentId" jdbcType="VARCHAR"/>
+        <result column="parent_name" property="parentName" jdbcType="VARCHAR"/>
+        <result column="name_path" property="namePath" jdbcType="VARCHAR"/>
+        <result column="address_id_path" property="addressIdPath" jdbcType="VARCHAR"/>
+        <result column="has_child" property="hasChild" jdbcType="INTEGER"/>
+        <result column="country_code" property="countryCode" jdbcType="CHAR"/>
+        <result column="country_id" property="countryId" jdbcType="VARCHAR"/>
+        <result column="creator_id" property="creatorId" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="BIGINT"/>
+        <result column="modifier_id" property="modifierId" jdbcType="VARCHAR"/>
+        <result column="modify_time" property="modifyTime" jdbcType="BIGINT"/>
+        <result column="version" property="version" jdbcType="INTEGER"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+    id,address_id, address_code, address_type, address_name, parent_id,parent_name,name_path,
+    address_id_path,has_child, country_code,country_id, creator_id,
+    create_time, modifier_id, modify_time, version
+  </sql>
+    <select id="selectByAddressId" resultMap="BaseResultMap" parameterType="string">
+        select
+        <include refid="Base_Column_List"/>
+        from basicdata_address_directory
+        where address_id = #{addressId,jdbcType=VARCHAR} and del_status=1
+    </select>
+    <select id="findAddress" resultMap="BaseResultMap" parameterType="com.kevin.demo.dao.po.AddressDirectoryPO">
+        select
+        <include refid="Base_Column_List"/>
+        from basicdata_address_directory
+        <where>
+            del_status=1
+            <if test="addressId !=null and addressId!='' ">
+                AND address_id = #{addressId}
+            </if>
+            <if test="addressCode !=null and addressCode!='' ">
+                AND address_code LIKE CONCAT('%', #{addressCode},'%')
+            </if>
+            <if test="addressType !=null and addressType!='' ">
+                AND address_type = #{addressType}
+            </if>
+            <if test="addressName !=null and addressName!='' ">
+                AND address_name LIKE CONCAT('%', #{addressName},'%')
+            </if>
+            <if test="parentId !=null and parentId!=''">
+                AND parent_id = #{parentId}
+            </if>
+            <if test="parentName !=null and parentName!='' ">
+                AND parent_name LIKE CONCAT('%', #{parentName},'%')
+            </if>
+            <if test="namePath !=null and namePath!='' ">
+                AND name_path =#{namePath}
+            </if>
+            <if test="hasChild !=null ">
+                AND has_child =#{hasChild}
+            </if>
+        </where>
+        order by address_name
+        <include refid="util._page"></include>
+    </select>
+    <select id="countAddress" resultType="int" parameterType="com.kevin.demo.dao.po.AddressDirectoryPO">
+        select
+        COUNT(1)
+        from basicdata_address_directory
+        <where>
+            del_status=1
+            <if test="addressId !=null and addressId!='' ">
+                AND address_id = #{addressId}
+            </if>
+            <if test="addressCode !=null and addressCode!='' ">
+                AND address_code LIKE CONCAT('%', #{addressCode},'%')
+            </if>
+            <if test="addressType !=null and addressType!='' ">
+                AND address_type = #{addressType}
+            </if>
+            <if test="addressName !=null and addressName!='' ">
+                AND address_name LIKE CONCAT('%', #{addressName},'%')
+            </if>
+            <if test="parentId !=null and parentId!=''">
+                AND parent_id = #{parentId}
+            </if>
+            <if test="parentName !=null and parentName!='' ">
+                AND parent_name LIKE CONCAT('%', #{parentName},'%')
+            </if>
+            <if test="namePath !=null and namePath!='' ">
+                AND name_path =#{namePath}
+            </if>
+            <if test="hasChild !=null ">
+                AND has_child =#{hasChild}
+            </if>
+        </where>
+    </select>
+
+    <select id="findAddressNotIn" resultMap="BaseResultMap" parameterType="map">
+        select
+        <include refid="Base_Column_List"/>
+        from basicdata_address_directory
+        <where>
+            del_status=1
+            AND parent_id = #{parentId}
+            <if test="addressIds!=null and addressIds.size>0">
+                and address_id not in
+                <foreach collection="addressIds" item="addressId" open="(" close=")" separator=",">
+                    #{addressId}
+                </foreach>
+            </if>
+        </where>
+        <include refid="util._page"></include>
+    </select>
+    <select id="countAddressNotIn" resultType="int" parameterType="map">
+        select
+        COUNT(1)
+        from basicdata_address_directory
+        <where>
+            del_status=1
+            AND parent_id = #{parentId}
+            <if test="addressIds!=null and addressIds.size>0">
+                and address_id not in
+                <foreach collection="addressIds" item="addressId" open="(" close=")" separator=",">
+                    #{addressId}
+                </foreach>
+            </if>
+        </where>
+    </select>
+    <update id="updateDelStatus" parameterType="string">
+        update basicdata_address_directory
+        set del_status=2
+        where address_id = #{addressId,jdbcType=VARCHAR}
+    </update>
+    <insert id="insert" parameterType="com.kevin.demo.dao.po.AddressDirectoryPO">
+    insert into basicdata_address_directory (id,address_id, address_code, address_type,
+        address_name, parent_id,parent_name,name_path,address_id_path, country_code,country_id,
+      creator_id, create_time, modifier_id, 
+      modify_time, version
+      )
+    values (#{id,jdbcType=INTEGER}, #{addressId,jdbcType=VARCHAR},#{addressCode,jdbcType=VARCHAR},  #{addressType,jdbcType=VARCHAR},
+        #{addressName,jdbcType=VARCHAR},#{parentId,jdbcType=VARCHAR},#{parentName,jdbcType=VARCHAR},#{namePath,jdbcType=VARCHAR},
+        #{addressIdPath,jdbcType=VARCHAR},#{countryCode,jdbcType=CHAR},#{countryId,jdbcType=VARCHAR},
+        #{creatorId,jdbcType=VARCHAR},<include refid="util._now"/>, #{modifierId,jdbcType=VARCHAR},
+        <include refid="util._now"/>, #{version,jdbcType=INTEGER}
+      )
+  </insert>
+    <update id="update" parameterType="com.kevin.demo.dao.po.AddressDirectoryPO">
+    update basicdata_address_directory
+    set address_code = #{addressCode,jdbcType=VARCHAR},
+      address_type = #{addressType,jdbcType=VARCHAR},
+      address_name = #{addressName,jdbcType=VARCHAR},
+      parent_id = #{parentId,jdbcType=VARCHAR},
+      parent_name = #{parentName,jdbcType=VARCHAR},
+      country_code = #{countryCode,jdbcType=CHAR},
+        country_id = #{countryId,jdbcType=VARCHAR},
+      modifier_id = #{modifierId,jdbcType=VARCHAR},
+        modify_time =<include refid="util._now"/>,
+        version = #{version,jdbcType=INTEGER}
+    where address_id = #{addressId,jdbcType=VARCHAR}
+  </update>
+    <update id="updateParentName" parameterType="map">
+        update basicdata_address_directory
+        set
+        parent_name = #{parentName,jdbcType=VARCHAR}
+        where parent_id = #{parentId,jdbcType=VARCHAR}
+    </update>
+    <update id="updateHasChild" parameterType="map">
+        update basicdata_address_directory
+        set
+        has_child = #{hasChild,jdbcType=INTEGER}
+        where address_id = #{addressId,jdbcType=VARCHAR}
+    </update>
+    <select id="findAddressByParentId" resultMap="BaseResultMap" parameterType="string">
+        select
+        <include refid="Base_Column_List"/>
+        from basicdata_address_directory
+        <where>
+            del_status=1
+            AND parent_id = #{parentId}
+        </where>
+    </select>
+</mapper>
